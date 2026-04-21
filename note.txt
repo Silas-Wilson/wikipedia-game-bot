@@ -1,0 +1,22 @@
+== WIKIPEDIA GAME BOT ==
+
+This program should take two wikipedia pages as input (page A and page B). The output should be
+a path from A -> B using only hyperlinks on wikipedia pages.
+
+This should work by using a webscraper to find every link on a wikipedia page, assigning each link
+a vector embedding*, and following the link of the page closest in vector space to the target
+page. This should repeat until the target page is reached.
+
+*assigning each title a vector embedding honestly might suffice
+
+INSTEAD OF ALWAYS PICKING A LINK FROM THE PAGE YOU'RE ON, IF IT DOESN'T FIND A BETTER MATCH IT SHOULD GO BACK!!!!
+- this ended up not working very well
+
+I NEED TO PROCESS THE PARAGRAPH EMBEDDINGS IN SUCH A WAY THAT DE-EMPHASIZED STUFF LIKE NAMES THAT WON'T HELP
+THE TRANSFORMER FIND THE PAGE
+
+I NEED TO FIND A WAY FOR THE PROGRAM TO RECOGNIZE REDIRECTS AS THE SAME PAGE
+
+I NEED TO FIND A WAY TO PREVENT IT FROM GETTING STUCK IN GOING THROUGH A BANDS' ENTIRE DISCOGRAPHY
+
+SCRAPE THE FIRST TABLE FOUND ON A PAGE IF IT EXISTS; THEY HAVE A LOT OF INFORMATION
