@@ -53,21 +53,7 @@ def get_page_title(url, remove_parenthesis = False):
         title = title[:title.index("(")].strip()
     return title
 
-def get_first_table(url, max_tokens):
-    html = request_html(url)
-
-    #Extract the first table from the HTML
-    table = html.select_one('table')
-
-    rows = table.select('tr')
-    text = ""
-
-    for row in rows:
-        text += row.get_text(strip=True)
-
-    return text[0:max_tokens * 4]
-
-def get_first_n_paragraphs(url, n, max_tokens):
+def get_first_n_paragraphs(url, n, max_tokens = 256):
     html = request_html(url)
     page_title = get_page_title(url, True)
 
@@ -84,7 +70,7 @@ def get_first_n_paragraphs(url, n, max_tokens):
             if text.find(page_title) != -1:          # Testing removing the
                 text = text.replace(page_title, " ") # title from the paragraph
             first_paragraphs.append(text)
-            if (len(first_paragraphs) == n): return first_paragraphs[0:max_tokens * 4]
+            if (len(first_paragraphs) == n): return " ".join(first_paragraphs)[0:max_tokens * 4]
 
 def search_wikipedia(query):
     res = requests.get(
@@ -105,4 +91,4 @@ def search_wikipedia(query):
     title = search_result[0]["title"]
     return "https://en.wikipedia.org/wiki/" + title.replace(" ", "_")
 
-print(get_first_table("https://en.wikipedia.org/wiki/Adolf_Hitler", 256))
+#print(get_first_table("https://en.wikipedia.org/wiki/David_Falk", 256))

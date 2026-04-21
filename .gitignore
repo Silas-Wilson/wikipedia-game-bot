@@ -6,4 +6,6 @@ venv/
 *.log
 *.sqlite3
 node_modules/
+test.py
+note.txt
 .cache/

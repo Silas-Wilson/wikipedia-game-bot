@@ -7,13 +7,13 @@ BATCH_SIZE = 50
 def batch_array(array, batch_size):
     return [array[i:i + batch_size] for i in range(0, len(array), batch_size)]
 
-def get_best_matching_hyperlink(current_url, target_url, target_embedding = None, url_history = None):
+def get_best_matching_hyperlink(current_url, target_url, target_embedding_paragraph = None, url_history = None):
     print("Current URL: " + current_url)
 
     #Initialize target embedding and URL history
-    if target_embedding is None:
+    if target_embedding_paragraph is None:
         target_first_paragraph = scraper.get_first_n_paragraphs(target_url, 1)
-        target_embedding = embedder.get_embeddings(target_first_paragraph)[0]
+        target_embedding_paragraph = embedder.get_embeddings([target_first_paragraph])[0]
     if url_history is None:
         url_history = []
 
@@ -32,22 +32,29 @@ def get_best_matching_hyperlink(current_url, target_url, target_embedding = None
 
     #Acquire hyperlink URL page title embeddings
     urls_on_page_embeddings = []
+
     for batch in urls_on_page_batched:
         batch_titles = [scraper.get_page_title(url) for url in batch]
         batch_embeddings = embedder.get_embeddings(batch_titles)
         urls_on_page_embeddings.extend(batch_embeddings)
 
+    #testing paragraphs as opposed to titles
+    #for batch in urls_on_page_batched:
+    #    batch_paragraphs = [scraper.get_first_n_paragraphs(url, 1) for url in batch]
+    #    batch_embeddings = embedder.get_embeddings(batch_paragraphs)
+    #    urls_on_page_embeddings.extend(batch_embeddings)
+
     #Determine most similar URL to target URL
     most_similar_url = ""
     highest_similarity = -1
     for embedding, url in zip(urls_on_page_embeddings, urls_on_page):
-        similarity_to_target = embedder.cosine_similarity(embedding, target_embedding)
+        similarity_to_target = embedder.cosine_similarity(embedding, target_embedding_paragraph)
 
         if (url not in url_history) and (similarity_to_target > highest_similarity):
             most_similar_url = url
             highest_similarity = similarity_to_target
 
-    return get_best_matching_hyperlink(most_similar_url, target_url, target_embedding, url_history)
+    return get_best_matching_hyperlink(most_similar_url, target_url, target_embedding_paragraph, url_history)
 
 def clear_terminal():
     os.system("cls" if os.name == "nt" else "clear")
