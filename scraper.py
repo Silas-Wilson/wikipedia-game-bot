@@ -12,13 +12,13 @@ def request_html(url):
     time.sleep(0.2)
     return BeautifulSoup(response.text, "html.parser")
 
-def get_all_hyperlink_urls(url):
-    html = request_html(url)
+def get_all_hyperlink_urls(current_url):
+    html = request_html(current_url)
 
     #Extract the URLs from the HTML
     content = html.select_one('#mw-content-text')
 
-    links = content.select('p a')
+    links = content.select('a')
 
     urls = [
         a.get('href') if a.get('href') else "NO_URL"
@@ -29,18 +29,31 @@ def get_all_hyperlink_urls(url):
         for link in links
     ]
 
-    #for url, text in zip(urls, hyperlink_texts):
-    #   print(text + ": " + url)
-
     #Filter the URLs
     filtered_urls = []
-    base_url = "https://en.wikipedia.org"
+    base_url_length = len("https://xx.wikipedia.org") #xx varies per language
     for url in urls:
-        if (wiki_index := url.find("/wiki/")) == -1: continue #Filter out non-wikipedia links
-        elif wiki_index > 0: url = url[wiki_index:] #Make sure URL starts with "/wiki/"
-        if base_url + url in filtered_urls: continue #Filter out duplicates
-        if url.find(":") != -1: continue #Filter out links with namespaces
-        if (fragment_index := url.find("#")) != -1: url = url[0:fragment_index] #Truncate URI fragments
+        base_url = current_url[:base_url_length]
+
+        if (wiki_index := url.find("/wiki/")) == -1:
+            continue #Filter out non-wikipedia links
+
+        elif wiki_index > 0:
+            includes_base_url = url.startswith("https://") and ".wikipedia.org/wiki/" in url
+            base_url_is_different = url[0:base_url_length] != base_url
+
+            if includes_base_url and base_url_is_different:
+                base_url = url[0:base_url_length] #Handle different base URLs
+            url = url[wiki_index:] #Make sure URL starts with "/wiki/"
+
+        if base_url + url in filtered_urls:
+            continue #Filter out duplicates
+
+        if url.find(":") != -1:
+            continue #Filter out links with namespaces
+
+        if (fragment_index := url.find("#")) != -1:
+            url = url[0:fragment_index] #Truncate URI fragments
 
         filtered_urls.append(base_url + url)
     
@@ -73,6 +86,9 @@ def get_first_n_paragraphs(url, n, max_tokens = 256):
             if (len(first_paragraphs) == n): return " ".join(first_paragraphs)[0:max_tokens * 4]
 
 def search_wikipedia(query):
+    if query.startswith("https://") and ".wikipedia.org/wiki/" in query:
+        return query
+
     res = requests.get(
         "https://en.wikipedia.org/w/api.php",
         params={

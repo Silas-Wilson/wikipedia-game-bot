@@ -32,20 +32,13 @@ def get_best_matching_hyperlink(current_url, target_url, target_embedding_paragr
 
     #Acquire hyperlink URL page title embeddings
     urls_on_page_embeddings = []
-
     for batch in urls_on_page_batched:
         batch_titles = [scraper.get_page_title(url) for url in batch]
         batch_embeddings = embedder.get_embeddings(batch_titles)
         urls_on_page_embeddings.extend(batch_embeddings)
 
-    #testing paragraphs as opposed to titles
-    #for batch in urls_on_page_batched:
-    #    batch_paragraphs = [scraper.get_first_n_paragraphs(url, 1) for url in batch]
-    #    batch_embeddings = embedder.get_embeddings(batch_paragraphs)
-    #    urls_on_page_embeddings.extend(batch_embeddings)
-
     #Determine most similar URL to target URL
-    most_similar_url = ""
+    most_similar_url = url_history[-2] if len(url_history) >= 2 else "EPIC FAIL!y"
     highest_similarity = -1
     for embedding, url in zip(urls_on_page_embeddings, urls_on_page):
         similarity_to_target = embedder.cosine_similarity(embedding, target_embedding_paragraph)
@@ -117,5 +110,4 @@ def main():
 
     if play_again.upper() == "Y": main()
 
-print("HEOOLLO!")
 main()
